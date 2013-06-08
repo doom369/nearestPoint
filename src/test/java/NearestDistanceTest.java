@@ -1,7 +1,6 @@
 import com.savarese.spatial.GenericPoint;
 import com.savarese.spatial.KDTree;
 import com.savarese.spatial.NearestNeighbors;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -11,6 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * User: ddumanskiy
@@ -46,7 +48,8 @@ public class NearestDistanceTest {
                         new GZIPInputStream(
                                 NearestDistanceTest.class.getResourceAsStream("/worldcitiespop.txt.gz"))));
 
-        String line;
+        //skipping first line. it has only column names
+        String line = in.readLine();
         while ((line = in.readLine()) != null) {
             String[] values = line.split(",");
             try {
@@ -69,6 +72,23 @@ public class NearestDistanceTest {
         performance3TimesTest();
         performance3TimesBalancedTreeTest();
     }
+
+
+    @Test
+    public void testConcreteLatLon() {
+        NearestNeighbors<Double, GenericPoint<Double>, Location> nn = new NearestNeighbors<Double, GenericPoint<Double>, Location>();
+        GenericPoint<Double> point = new GenericPoint<Double>(50.4501, 30.5234);
+
+        NearestNeighbors.Entry<Double, GenericPoint<Double>, Location>[] n = nn.get(tree, point, 1, false);
+
+        assertNotNull(n);
+        assertNotNull(n[0]);
+        Location location = n[0].getNeighbor().getValue();
+        assertNotNull(location);
+        assertEquals("ua", location.getCountry());
+        assertEquals("kyyiv", location.getCity());
+    }
+
 
     private void performance3TimesTest() {
         System.out.println("Tree size = " + tree.size());
@@ -99,8 +119,8 @@ public class NearestDistanceTest {
             point = new GenericPoint<Double>(getRandomLat(), getRandomLon());
             NearestNeighbors.Entry<Double, GenericPoint<Double>, Location>[] n = nn.get(tree, point, 1, false);
 
-            Assert.assertNotNull(n);
-            Assert.assertNotNull(n[0]);
+            assertNotNull(n);
+            assertNotNull(n[0]);
         }
 
         System.out.println("Test result with " + iterations + " iterations : " + (double) (System.currentTimeMillis() - startTime) / iterations + " ms per 1 get.");
